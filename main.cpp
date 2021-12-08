@@ -1,9 +1,9 @@
 #include <iostream>
-#include "Scanner.h"
+#include "Entrada.h"
 
 int main() {
     //std::cout << "Hello, World!" << std::endl;
-    scanner scan;
+    entrada scan;
     scan.MenuInicio();
     return 0;
 }

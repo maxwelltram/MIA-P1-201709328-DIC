@@ -4,11 +4,12 @@
 
 using namespace std;
 
-class scanner{
+class entrada{
 public:
-    scanner();
+    entrada();
     void MenuInicio();
     //string Minuscula(string comando);
+    string busquedaToken(string comando);
     bool Equals(string Uno, string Dos);
     string CamMayusculas(string comandoCambio);
 };

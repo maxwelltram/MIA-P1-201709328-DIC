@@ -39,13 +39,13 @@ include CMakeFiles/rules.ninja
 #############################################
 # Logical path to working directory; prefix for absolute paths.
 
-cmake_ninja_workdir = /home/maxwelltram/CLionProjects/untitled1/cmake-build-debug/
+cmake_ninja_workdir = /home/maxwelltram/CLionProjects/MIA-P1-201709328/cmake-build-debug/
 
 #############################################
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /home/maxwelltram/CLionProjects/untitled1/cmake-build-debug && /snap/clion/175/bin/cmake/linux/bin/cmake --regenerate-during-build -S/home/maxwelltram/CLionProjects/untitled1 -B/home/maxwelltram/CLionProjects/untitled1/cmake-build-debug
+  COMMAND = cd /home/maxwelltram/CLionProjects/MIA-P1-201709328/cmake-build-debug && /snap/clion/175/bin/cmake/linux/bin/cmake --regenerate-during-build -S/home/maxwelltram/CLionProjects/MIA-P1-201709328 -B/home/maxwelltram/CLionProjects/MIA-P1-201709328/cmake-build-debug
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -57,7 +57,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /home/maxwelltram/CLionProjects/untitled1/cmake-build-debug && /snap/clion/175/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /home/maxwelltram/CLionProjects/MIA-P1-201709328/cmake-build-debug && /snap/clion/175/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -72,14 +72,14 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 
 build cmake_object_order_depends_target_untitled1: phony || CMakeFiles/untitled1.dir
 
-build CMakeFiles/untitled1.dir/main.cpp.o: CXX_COMPILER__untitled1_Debug /home/maxwelltram/CLionProjects/untitled1/main.cpp || cmake_object_order_depends_target_untitled1
+build CMakeFiles/untitled1.dir/main.cpp.o: CXX_COMPILER__untitled1_Debug /home/maxwelltram/CLionProjects/MIA-P1-201709328/main.cpp || cmake_object_order_depends_target_untitled1
   DEP_FILE = CMakeFiles/untitled1.dir/main.cpp.o.d
   FLAGS = -g -std=gnu++14
   OBJECT_DIR = CMakeFiles/untitled1.dir
   OBJECT_FILE_DIR = CMakeFiles/untitled1.dir
 
-build CMakeFiles/untitled1.dir/Scanner.cpp.o: CXX_COMPILER__untitled1_Debug /home/maxwelltram/CLionProjects/untitled1/Scanner.cpp || cmake_object_order_depends_target_untitled1
-  DEP_FILE = CMakeFiles/untitled1.dir/Scanner.cpp.o.d
+build CMakeFiles/untitled1.dir/Entrada.cpp.o: CXX_COMPILER__untitled1_Debug /home/maxwelltram/CLionProjects/MIA-P1-201709328/Entrada.cpp || cmake_object_order_depends_target_untitled1
+  DEP_FILE = CMakeFiles/untitled1.dir/Entrada.cpp.o.d
   FLAGS = -g -std=gnu++14
   OBJECT_DIR = CMakeFiles/untitled1.dir
   OBJECT_FILE_DIR = CMakeFiles/untitled1.dir
@@ -92,7 +92,7 @@ build CMakeFiles/untitled1.dir/Scanner.cpp.o: CXX_COMPILER__untitled1_Debug /hom
 #############################################
 # Link the executable untitled1
 
-build untitled1: CXX_EXECUTABLE_LINKER__untitled1_Debug CMakeFiles/untitled1.dir/main.cpp.o CMakeFiles/untitled1.dir/Scanner.cpp.o
+build untitled1: CXX_EXECUTABLE_LINKER__untitled1_Debug CMakeFiles/untitled1.dir/main.cpp.o CMakeFiles/untitled1.dir/Entrada.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/untitled1.dir
   POST_BUILD = :
@@ -109,7 +109,7 @@ build untitled1: CXX_EXECUTABLE_LINKER__untitled1_Debug CMakeFiles/untitled1.dir
 # =============================================================================
 
 #############################################
-# Folder: /home/maxwelltram/CLionProjects/untitled1/cmake-build-debug
+# Folder: /home/maxwelltram/CLionProjects/MIA-P1-201709328/cmake-build-debug
 
 build all: phony untitled1
 
