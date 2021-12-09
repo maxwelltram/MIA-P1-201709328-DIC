@@ -2,6 +2,8 @@
 #include <cstring>
 #include <stdio.h>
 #include <vector>
+#include <fstream>
+#include <cstdlib>
 #include "Entrada.h"
 
 using namespace std;
@@ -10,8 +12,10 @@ string tok;
 vector<string> tokens;
 //Vector que recibe el retorno del metodo
 vector<string> tokRet;
-//Variable para split de tokens
+//Variable para split de tokens que sirve para ir formando los parametros
 string token = "";
+//Variale direccion para comando exec
+string dir="";
 
 entrada::entrada() {
 }
@@ -57,12 +61,20 @@ void entrada::MenuInicio(){
     }
 }
 
+
+
 bool entrada::Equals(string Uno, string Dos){
     if (CamMayusculas(Uno) == CamMayusculas(Dos))
     {
         return true;
     }
     return false;
+}
+
+void entrada::AlertaError(string comando, string alerta){
+
+    cout << "\033[1;41m Error\033"<< "\033[0;31m(" + comando + ")~~> \033[0m"<< alerta << endl;
+
 }
 
 string entrada::CamMayusculas(string comandoEntrada){
@@ -77,6 +89,12 @@ string entrada::CamMayusculas(string comandoEntrada){
     for (int i = 0; i < cadena.length(); i++) cadena[i] = tolower(cadena[i]);
     return cadena;
 }*/
+
+void entrada::AlertaMensaje(string comando, string alerta){
+
+    cout << "\033[0;42m(" + comando + ")~~> \033[0m" << alerta << endl;
+}
+
 
 string entrada::busquedaToken(string comando)
 {
@@ -121,13 +139,17 @@ vector<string> entrada::splitTok(string tokensCad){
     tokensCad.push_back(' ');
 
     int estado = 0;
+    /*La variable pivote, es la que ira tomando el valor de cada una de las letras o signos
+      que tokensCad traiga*/
     for(char &pivote: tokensCad){
+      //si encuentra un - signica que es el inicio de algun parametro y cambiamos al estado 1
         if (estado ==0 && pivote == '-')
         {
             estado = 1;
-
+            //Verificamos si sera o no un comentario entonces utilizamos el # para validarlo
         }else if(estado==0 && pivote == '#'){
             continue;
+            //Si el estado sera diferente de 0, tenemos diferentes instrucciones para cada estado
         }else if(estado!=0){
             if (estado == 1)
             {
@@ -143,22 +165,25 @@ vector<string> entrada::splitTok(string tokensCad){
                 }else{
                     estado = 4;
                 }
-
+            //Guardamos los path que han sido insertados
             }else if(estado == 3){
                 if (pivote == '\"')
                 {
                     estado = 4;
                 }
+
             }else if (estado==4 && pivote == '\"')
             {
                 //Vaciamos el array de tokens
                 tokens.clear();
                 continue;
+                //Guardamos el final de los parametros
             }else if (estado ==4 && pivote == ' ')
             {
                 estado = 0;
+                //Guardamos en el vector tokens al final el ultimo parametro
                 tokens.push_back(token);
-                //Limpiamos la variable tokens
+                //Limpiamos la variable token
                 token = "";
                 continue;
             }
@@ -167,3 +192,73 @@ vector<string> entrada::splitTok(string tokensCad){
     }
     return tokens;
 }
+
+void entrada::comandoScript(vector<string> parametros){
+        string tok="";
+    for (string token: parametros) {
+        tok=token.substr(0, token.find(":"));
+        token.erase(0, tok.length()+2);
+        tok = tok.substr(0,tok.find("~"));
+        if (Equals(tok,"PATH")){
+            dir = token;
+        }
+    }
+    if (dir.empty()){
+        AlertaError("COMANDO EXEC - SCRIPT","Sucedio un error, revise la dirección del comando");
+        return;
+    }else{
+        cout<<"NO SE ENCONTRO NINGUN ERROR EN EL COMANDO SCRIPT";
+    }
+
+}
+
+void entrada::script(string direc){
+    vector<string> vecL;
+    string auxLin;
+    string tokenSc;
+    string nombreArc(direc);
+    string escritura;
+    string p;
+    vector <string> toks;
+
+    ifstream archEn(nombreArc);
+    //Error si no se llega a encontrar la direccion
+    if (!archEn.is_open()){
+        cerr <<"°°°°°°°°°°ERROR: El archivo no se abrio correctamente°°°°°°°°°°";
+        return;
+    }
+
+    //Podemos escribir en el archivo
+    while(getline(archEn,auxLin)){
+        vecL.push_back(auxLin);
+    }
+    for (const auto &i: vecL) {
+         escritura=i;
+        tokenSc= busquedaToken(escritura);
+        if (Equals(escritura,"PAUSE")){
+            cout << "\n**********Programa en pausa**********\n";
+            AlertaMensaje("PAUSA","Presione la letra enter.......");
+            getline(cin,p);
+            continue;
+        }
+        escritura.erase(0,tokenSc.length()+1);
+        toks= splitTok(escritura);
+        comandos(tokenSc,toks);
+    }
+    archEn.close();
+    return;
+}
+
+void entrada::comandos(string token, vector<string> tks)
+{
+    if (Equals(token, "MKDISK"))
+    {
+        cout << "*****EJECUTANDO COMANDO MKDISK*****" << std::endl;
+        //LogDisco.mkdisk(tks); // [-size=10, -u=m, -path=/home/hola.dk]
+    }else if(Equals(token, "RMDISK")) {
+        cout << "*****EJECUTANDO COMANDO RMDISK*****" << std::endl;
+        //LogDisco.rmdisk(tks);
+    }
+}
+
+

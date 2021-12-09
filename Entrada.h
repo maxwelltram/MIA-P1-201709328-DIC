@@ -14,7 +14,11 @@ public:
     bool Equals(string Uno, string Dos);
     string CamMayusculas(string comandoCambio);
     vector<string> splitTok(string entrada);
-
+    void comandos(string comando, vector<string> tokens);
+    void comandoScript(vector<string> parametros);
+    void AlertaError(string comando, string alerta);
+    void script(string dirc);
+    void AlertaMensaje(string comando, string alerta);
 };
 
 #endif
