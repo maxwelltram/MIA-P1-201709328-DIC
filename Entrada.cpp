@@ -1,10 +1,17 @@
 #include <iostream>
 #include <cstring>
 #include <stdio.h>
+#include <vector>
 #include "Entrada.h"
 
 using namespace std;
-
+string tok;
+//Vector que esta dentro del metodo
+vector<string> tokens;
+//Vector que recibe el retorno del metodo
+vector<string> tokRet;
+//Variable para split de tokens
+string token = "";
 
 entrada::entrada() {
 }
@@ -31,8 +38,22 @@ void entrada::MenuInicio(){
             exit(-1);
         }
         //Validamos el comando y buscamos los tokens
-        string tok= busquedaToken(comando);
+         tok= busquedaToken(comando);
+
+        //Borramos el token que acaba de registrar
         comando.erase(0,tok.length()+1);
+
+        //Enviamos el resto de la cadena para que se hagan los splits
+        tokRet = splitTok(comando);
+
+
+        cout << "\n**********Programa en pausa**********\nPresione enter, para poder continuar:" << endl;
+        getline(cin,comando);
+        LimpiarPantalla();
+        cout << "------------------------------BIENVENIDO A LA APLICACIÓN DE COMANDOS ---------------------------\n" << endl;
+        cout << "-------------------------------ESCRIBA EXIT PARA SALIR DE LA APP--------------------------------\n" << endl;
+        cout << "*";
+
     }
 }
 
@@ -89,4 +110,60 @@ string entrada::busquedaToken(string comando)
     }
     //Retornamos el token encontrado
     return auxToken;
+}
+
+vector<string> entrada::splitTok(string tokensCad){
+
+    if (tokensCad.empty())
+    {
+        return tokens;
+    }
+    tokensCad.push_back(' ');
+
+    int estado = 0;
+    for(char &pivote: tokensCad){
+        if (estado ==0 && pivote == '-')
+        {
+            estado = 1;
+
+        }else if(estado==0 && pivote == '#'){
+            continue;
+        }else if(estado!=0){
+            if (estado == 1)
+            {
+                if(pivote == '='){
+                    estado = 2;
+                }else if(pivote == ' '){
+                    continue;
+                }
+            }else if(estado == 2){
+                if (pivote == '\"')
+                {
+                    estado = 3;
+                }else{
+                    estado = 4;
+                }
+
+            }else if(estado == 3){
+                if (pivote == '\"')
+                {
+                    estado = 4;
+                }
+            }else if (estado==4 && pivote == '\"')
+            {
+                //Vaciamos el array de tokens
+                tokens.clear();
+                continue;
+            }else if (estado ==4 && pivote == ' ')
+            {
+                estado = 0;
+                tokens.push_back(token);
+                //Limpiamos la variable tokens
+                token = "";
+                continue;
+            }
+            token+=pivote;
+        }
+    }
+    return tokens;
 }

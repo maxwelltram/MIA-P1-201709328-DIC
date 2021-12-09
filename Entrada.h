@@ -1,6 +1,7 @@
 
 #ifndef SCANNER_H
 #define SCANNER_H
+#include <vector>
 
 using namespace std;
 
@@ -12,6 +13,8 @@ public:
     string busquedaToken(string comando);
     bool Equals(string Uno, string Dos);
     string CamMayusculas(string comandoCambio);
+    vector<string> splitTok(string entrada);
+
 };
 
 #endif
