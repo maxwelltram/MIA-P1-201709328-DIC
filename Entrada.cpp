@@ -49,7 +49,8 @@ void entrada::MenuInicio(){
 
         //Enviamos el resto de la cadena para que se hagan los splits
         tokRet = splitTok(comando);
-
+        //Probaremos si funcionan los scripts
+        comandos(tok,tokRet);
 
         cout << "\n**********Programa en pausa**********\nPresione enter, para poder continuar:" << endl;
         getline(cin,comando);
@@ -92,7 +93,7 @@ string entrada::CamMayusculas(string comandoEntrada){
 
 void entrada::AlertaMensaje(string comando, string alerta){
 
-    cout << "\033[0;42m(" + comando + ")~~> \033[0m" << alerta << endl;
+    cout << "\033[0;42m(" + comando + ")----->  \033[0m" << alerta << endl;
 }
 
 
@@ -213,6 +214,7 @@ void entrada::comandoScript(vector<string> parametros){
 }
 
 void entrada::script(string direc){
+    cout<<"PROBANDO SI FUNCIONA ESTA ONDA";
     vector<string> vecL;
     string auxLin;
     string tokenSc;
@@ -249,15 +251,21 @@ void entrada::script(string direc){
     return;
 }
 
-void entrada::comandos(string token, vector<string> tks)
+void entrada::comandos(string tokenC, vector<string> tks)
 {
-    if (Equals(token, "MKDISK"))
+    if (Equals(tokenC, "MKDISK"))
     {
-        cout << "*****EJECUTANDO COMANDO MKDISK*****" << std::endl;
+        cout << "*****EJECUTANDO COMANDO MKDISK*****" << endl;
         //LogDisco.mkdisk(tks); // [-size=10, -u=m, -path=/home/hola.dk]
-    }else if(Equals(token, "RMDISK")) {
-        cout << "*****EJECUTANDO COMANDO RMDISK*****" << std::endl;
+    }else if(Equals(tokenC, "RMDISK")) {
+        cout << "*****EJECUTANDO COMANDO RMDISK*****" << endl;
         //LogDisco.rmdisk(tks);
+    }else if(Equals(tokenC, "EXEC")){
+        cout << "*****EJECUTANDO COMANDO EXEC*****" << endl;
+        comandoScript(tks);
+    }else if (Equals(tokenC.substr(0,1), "#")){
+        cout<<"*****EJECUTANDO COMANDO COMENTARIO*****\n" << endl;
+        AlertaMensaje("COMENTARIO",tokenC);
     }
 }
 
