@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include "Entrada.h"
 
+LogDiscos DiscoLogica;
+
 using namespace std;
 string tok;
 //Vector que esta dentro del metodo
@@ -74,7 +76,7 @@ bool entrada::Equals(string Uno, string Dos){
 
 void entrada::AlertaError(string comando, string alerta){
 
-    cout << "\033[1;41m Error\033"<< "\033[0;31m(" + comando + ")~~> \033[0m"<< alerta << endl;
+    cout << "\033[1;41m Error\033"<< "\033[0;31m(" + comando + ")-----> \033[0m"<< alerta << endl;
 
 }
 
@@ -154,13 +156,17 @@ vector<string> entrada::splitTok(string tokensCad){
         }else if(estado!=0){
             if (estado == 1)
             {
-                if(pivote == '='){
+                if(pivote == '=' || pivote == '~'){
                     estado = 2;
                 }else if(pivote == ' '){
                     continue;
                 }
             }else if(estado == 2){
-                if (pivote == '\"')
+                if (pivote ==':'){
+                    estado = 2;
+                }else if (pivote == '~'){
+                    estado = 4;
+                }else if (pivote == '\"')
                 {
                     estado = 3;
                 }else{
@@ -208,13 +214,13 @@ void entrada::comandoScript(vector<string> parametros){
         AlertaError("COMANDO EXEC - SCRIPT","Sucedio un error, revise la dirección del comando");
         return;
     }else{
-        cout<<"NO SE ENCONTRO NINGUN ERROR EN EL COMANDO SCRIPT";
+        cout<<"NO SE ENCONTRO NINGUN ERROR EN EL COMANDO SCRIPT\n";
     }
-
+    script(dir);
 }
 
 void entrada::script(string direc){
-    cout<<"PROBANDO SI FUNCIONA ESTA ONDA";
+    cout<<"PROBANDO SI FUNCIONA ESTA ONDA\n";
     vector<string> vecL;
     string auxLin;
     string tokenSc;
@@ -256,7 +262,7 @@ void entrada::comandos(string tokenC, vector<string> tks)
     if (Equals(tokenC, "MKDISK"))
     {
         cout << "*****EJECUTANDO COMANDO MKDISK*****" << endl;
-        //LogDisco.mkdisk(tks); // [-size=10, -u=m, -path=/home/hola.dk]
+        DiscoLogica.ComandoMkdisk(tks); // [-size~:~10, -u=m, -path=/home/hola.dk]
     }else if(Equals(tokenC, "RMDISK")) {
         cout << "*****EJECUTANDO COMANDO RMDISK*****" << endl;
         //LogDisco.rmdisk(tks);

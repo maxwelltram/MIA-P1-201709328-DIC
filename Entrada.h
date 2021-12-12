@@ -2,6 +2,7 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 #include <vector>
+#include "./LogDisco.h"
 
 using namespace std;
 
