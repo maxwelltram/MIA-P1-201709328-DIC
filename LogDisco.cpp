@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include "Decision.h"
+#include "AuxMet.h"
 
 using namespace std;
 
@@ -13,6 +14,7 @@ using namespace std;
 int inicio;
 entrada entradita;
 decision decisiones;
+aux Auxx;
 
 bool Err= false;
 //Variables para fit,unit y Dir en ComandoMkdisk
@@ -259,6 +261,134 @@ void LogDiscos::CrearDisco(string fi, string un,string tam, string pat){
     catch(invalid_argument &e){
         entradita.AlertaError("ERROR EN EL MKDSIK","Revise los parametros, el tamanio puede estar mal");
     }
+}
+
+void LogDiscos::ComandoFdisk(vector<string> entrada){
+    bool banderaBorrar= false;
+    string id;
+    for(string pivo : entrada){
+        id = Auxx.Minus(pivo.substr(0, pivo.find(':')));
+        pivo.erase(0, id.length()+2);
+        if(pivo.substr(0,1)=="\""){
+            pivo = pivo.substr(1, pivo.length()-2);
+        }
+        if(Auxx.Equals(id, "delete")){
+            banderaBorrar = true;
+        }
+    }
+    if(!banderaBorrar){
+        vector<string> parametro={"size","path","name"};
+        string unit= "k";
+        string fit="WF";
+        string Size;
+        string Type ="P";
+        string Name;
+        string Add;
+        string Path ;
+
+        for ( auto pivo: entrada){
+            string Auxid = Auxx.Minus(pivo.substr(0,pivo.find(':')));
+            pivo.erase(0, Auxid.length()+2);
+            if(pivo.substr(0,1)=="\""){
+                pivo = pivo.substr(1,pivo.length()-2);
+            }
+
+
+            if(Auxx.Equals(Auxid,"u")){
+                unit = pivo;
+            }else if(Auxx.Equals(Auxid,"size")){
+                if(count(parametro.begin(), parametro.end(),Auxid)){
+                    auto itr = find(parametro.begin(),parametro.end(), Auxid);
+                    parametro.erase(itr);
+                    Size = pivo;
+                }
+            }else if(Auxx.Equals(Auxid,"type")){
+                Type = pivo;
+            }else if(Auxx.Equals(Auxid,"f")){
+                fit = pivo;
+            }else if(Auxx.Equals(Auxid,"path")){
+                if(count(parametro.begin(),parametro.end(),Auxid)){
+                    auto itr = find(parametro.begin(), parametro.end(), Auxid);
+                    parametro.erase(itr);
+                    Path=pivo;
+                }
+            }else if(Auxx.Equals(Auxid,"name")){
+                if (count(parametro.begin(), parametro.end(), id)) {
+                    auto itr = find(parametro.begin(), parametro.end(), id);
+                    parametro.erase(itr);
+                    Name = pivo;
+                }
+            }else if(Auxx.Equals(Auxid,"add")){
+                Add = pivo;
+                if (count(parametro.begin(), parametro.end(), "size")) {
+                    auto itr = find(parametro.begin(), parametro.end(), "size");
+                    parametro.erase(itr);
+                    Size = pivo;
+                }
+            }
+        }
+        if(!parametro.empty()){
+            Auxx.Alerta("COMANDO FDISK", "El parametro Create necesita  algunos parametros obligatorios, que no estan");
+            return;
+        }
+        if(Add.empty()){
+            Particion(Size,unit,Path,Type,fit,Name,Add);
+        }else{
+            AgregarParti(Add,unit,Name,Path);
+        }
+    }else{
+        vector<string> parametro = {"delete","name","path"};
+        string path;
+        string name;
+        string borrar;
+
+        for (auto pivo: entrada) {
+            string Auxid = Auxx.Minus(pivo.substr(0, pivo.find(':')));
+            pivo.erase(0, Auxid.length()+2);
+            if(pivo.substr(0,1)=="\""){
+                pivo = pivo.substr(1, pivo.length()-2);
+            }
+
+            if(Auxx.Equals(Auxid, "name")){
+                if(count(parametro.begin(), parametro.end(),Auxid)){
+                    auto itr = find(parametro.begin(), parametro.end(),Auxid);
+                    parametro.erase(itr);
+                    name = pivo;
+                }
+            }else if(Auxx.Equals(Auxid, "delete")){
+                if (count(parametro.begin(), parametro.end(), Auxid)) {
+
+                    auto itr = find(parametro.begin(), parametro.end(), Auxid);
+                    parametro.erase(itr);
+                    borrar = pivo;
+                }
+            }else if(Auxx.Equals(Auxid, "path")){
+                if (count(parametro.begin(), parametro.end(), Auxid)) {
+                    auto itr = find(parametro.begin(), parametro.end(), Auxid);
+                    parametro.erase(itr);
+                    path = pivo;
+                }
+            }
+        }
+        if(parametro.size()!=0){
+            Auxx.Alerta("COMANDO FDISK", "El parametro Create necesita  algunos parametros obligatorios, que no estan\n");
+            return;
+        }
+        BorraParti(borrar, path, name);
+    }
+
+}
+
+void LogDiscos::Particion(string size, string unit, string path, string type, string fit, string nam, string ad) {
+
+}
+
+void LogDiscos::AgregarParti(string add, string unit, string name, string path) {
+
+}
+
+void LogDiscos::BorraParti(string d, string path, string unit) {
+
 }
 
 string LogDiscos::BorrarEspacio(string Variable) {
