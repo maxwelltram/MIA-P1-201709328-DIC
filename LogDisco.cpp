@@ -4,6 +4,8 @@
 #include "Entrada.h"
 #include "LogDisco.h"
 #include <vector>
+#include <algorithm>
+
 using namespace std;
 
 //Variables a utilizar en toda la clase LogDisco
@@ -36,20 +38,21 @@ void LogDiscos::ComandoMkdisk(vector<string> parametros){
                 entradita.AlertaError( "ERROR EN  MKDISK", "Sucedio un problema con el fit \"F\" en la linea:"+ Auxpara);
             }
         }else if (entradita.Equals(Auxpara, "u")){
-            if (fit.empty()){
-                tamanio = parametro;
+            if (unit.empty()){
+                unit = parametro;
             }else{
                 entradita.AlertaError( "ERROR EN  MKDISK", "Sucedio un problema con la unit \"U\" en la linea:"+ Auxpara);
             }
         }else if (entradita.Equals(Auxpara, "size")){
-            if (fit.empty()){
+            if (tamanio.empty()){
                 tamanio = parametro;
             }else{
                 entradita.AlertaError( "ERROR EN  MKDISK", "Sucedio un problema con el tamanio \"SIZE\" en la linea:"+ Auxpara);
             }
         }else if (entradita.Equals(Auxpara, "path")){
-            if (fit.empty()){
+            if (Dir.empty()){
                 Dir = parametro;
+                Dir = BorrarEspacio(Dir);
             }else{
                 entradita.AlertaError( "ERROR EN  MKDISK", "Sucedio un problema con la direccion \"PATH\" en la linea:"+ Auxpara);
             }
@@ -59,7 +62,8 @@ void LogDiscos::ComandoMkdisk(vector<string> parametros){
             break;
         }
     }
-    CorrigeParametros(fit, unit);
+    fit = CorrigeParametrosFit(fit);
+    unit = CorrigeParametrosUnit(unit);
     if (Err){
         return;
     }
@@ -75,19 +79,23 @@ void LogDiscos::ComandoMkdisk(vector<string> parametros){
         entradita.AlertaError("ERROR EN MKDISK", "Se encontro un valor incorrecto, para el parametro fit \"F\"");
     }else{
         //Si todo sale bien, se hara la particion
-
+        CrearDisco(fit,unit, tamanio,Dir);
     }
 }
 
-void LogDiscos::CorrigeParametros(string fit, string unit) {
+string LogDiscos::CorrigeParametrosFit(string fit) {
     if (fit.empty())
     {
         fit = "BF";
     }
+    return fit;
+}
+string LogDiscos::CorrigeParametrosUnit(string unit){
     if (unit.empty())
     {
         unit = "M";
     }
+    return unit;
 }
 
 void LogDiscos::CrearDisco(string fi, string un,string tam, string pat){
@@ -174,8 +182,8 @@ void LogDiscos::CrearDisco(string fi, string un,string tam, string pat){
                 tm = localtime(&PrimerDisco.mbrFechaC);
                 char FechaCreado[20];
                 strftime(FechaCreado,20,"%Y/%m/%d %H:%M:%S", tm);
-                cout<< "DISCO CREADO DE MANERA EXITOSA EN MKDISK";
-                cout << "------------DETALLES DEL NUEVO DISCO------------";
+                cout<< "DISCO CREADO DE MANERA EXITOSA EN MKDISK\n";
+                cout << "------------DETALLES DEL NUEVO DISCO------------\n";
                 cout << "Date: "<< FechaCreado << "\n";
                 cout << "Size: "<< PrimerDisco.mbrTamanio << "\n";
                 cout << "Fit: "<< PrimerDisco.mbrDiscoFit << "\n";
@@ -191,6 +199,15 @@ void LogDiscos::CrearDisco(string fi, string un,string tam, string pat){
     catch(invalid_argument &e){
         entradita.AlertaError("ERROR EN EL MKDSIK","Revise los parametros, el tamanio puede estar mal");
     }
+}
+
+string LogDiscos::BorrarEspacio(string Variable) {
+
+
+    remove_if(Variable.begin(), Variable.end(), ::isspace);
+
+
+    return Variable;
 }
 
 

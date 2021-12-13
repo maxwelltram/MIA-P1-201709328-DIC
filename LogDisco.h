@@ -24,8 +24,10 @@ public:
         int particion;
     } Auxiliar;
 
-    void CorrigeParametros(string fit, string unit);
 
+    string CorrigeParametrosFit(string fit);
+    string CorrigeParametrosUnit(string unit);
+    string BorrarEspacio(string var);
     void CrearDisco(string fit, string unit, string tamanio, string path);
 
 };

@@ -133,6 +133,20 @@ string entrada::busquedaToken(string comando)
     return auxToken;
 }
 
+bool  entrada::ComparaCadena(string var){
+    char prueba[]="PATH~:~";
+    int n = var.length();
+    char cadena[n];
+    strcpy(cadena,var.c_str());
+    for ( int i = 0; i < strlen(cadena); i++ )  {
+        cadena[i] = toupper( cadena[i] );
+    }
+    if (strcmp(cadena,prueba) == 0){
+        return true;
+    }
+    return false;
+}
+
 vector<string> entrada::splitTok(string tokensCad){
 
     if (tokensCad.empty())
@@ -145,6 +159,7 @@ vector<string> entrada::splitTok(string tokensCad){
     /*La variable pivote, es la que ira tomando el valor de cada una de las letras o signos
       que tokensCad traiga*/
     for(char &pivote: tokensCad){
+
       //si encuentra un - signica que es el inicio de algun parametro y cambiamos al estado 1
         if (estado ==0 && pivote == '-')
         {
@@ -153,6 +168,9 @@ vector<string> entrada::splitTok(string tokensCad){
         }else if(estado==0 && pivote == '#'){
             continue;
             //Si el estado sera diferente de 0, tenemos diferentes instrucciones para cada estado
+        }else if (estado==0 && pivote =='/') {
+            estado = 4;
+            token+=pivote;
         }else if(estado!=0){
             if (estado == 1)
             {
@@ -185,11 +203,16 @@ vector<string> entrada::splitTok(string tokensCad){
                 tokens.clear();
                 continue;
                 //Guardamos el final de los parametros
-            }else if (estado ==4 && pivote == ' ')
+            }else if (estado ==4 && pivote == ' ' && ComparaCadena(token) == true){
+                estado= 4;
+                continue;
+            }//ACA TENGO QUE PROBAR LOS ESPACIOS PARA EL PATH
+            else if (estado ==4 && pivote == ' ')
             {
                 estado = 0;
                 //Guardamos en el vector tokens al final el ultimo parametro
                 tokens.push_back(token);
+                cout<< token<<"\n";
                 //Limpiamos la variable token
                 token = "";
                 continue;
@@ -262,7 +285,7 @@ void entrada::comandos(string tokenC, vector<string> tks)
     if (Equals(tokenC, "MKDISK"))
     {
         cout << "*****EJECUTANDO COMANDO MKDISK*****" << endl;
-        DiscoLogica.ComandoMkdisk(tks); // [-size~:~10, -u=m, -path=/home/hola.dk]
+        DiscoLogica.ComandoMkdisk(tks);
     }else if(Equals(tokenC, "RMDISK")) {
         cout << "*****EJECUTANDO COMANDO RMDISK*****" << endl;
         //LogDisco.rmdisk(tks);

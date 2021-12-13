@@ -10,6 +10,7 @@ class entrada{
 public:
     entrada();
     void MenuInicio();
+    bool ComparaCadena(string var);
     //string Minuscula(string comando);
     string busquedaToken(string comando);
     bool Equals(string Uno, string Dos);
