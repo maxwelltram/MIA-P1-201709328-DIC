@@ -96,6 +96,12 @@ build CMakeFiles/untitled1.dir/StructsGlobal.cpp.o: CXX_COMPILER__untitled1_Debu
   OBJECT_DIR = CMakeFiles/untitled1.dir
   OBJECT_FILE_DIR = CMakeFiles/untitled1.dir
 
+build CMakeFiles/untitled1.dir/Decision.cpp.o: CXX_COMPILER__untitled1_Debug /home/maxwelltram/CLionProjects/MIA-P1-201709328/Decision.cpp || cmake_object_order_depends_target_untitled1
+  DEP_FILE = CMakeFiles/untitled1.dir/Decision.cpp.o.d
+  FLAGS = -g -std=gnu++14
+  OBJECT_DIR = CMakeFiles/untitled1.dir
+  OBJECT_FILE_DIR = CMakeFiles/untitled1.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target untitled1
@@ -104,7 +110,7 @@ build CMakeFiles/untitled1.dir/StructsGlobal.cpp.o: CXX_COMPILER__untitled1_Debu
 #############################################
 # Link the executable untitled1
 
-build untitled1: CXX_EXECUTABLE_LINKER__untitled1_Debug CMakeFiles/untitled1.dir/main.cpp.o CMakeFiles/untitled1.dir/Entrada.cpp.o CMakeFiles/untitled1.dir/LogDisco.cpp.o CMakeFiles/untitled1.dir/StructsGlobal.cpp.o
+build untitled1: CXX_EXECUTABLE_LINKER__untitled1_Debug CMakeFiles/untitled1.dir/main.cpp.o CMakeFiles/untitled1.dir/Entrada.cpp.o CMakeFiles/untitled1.dir/LogDisco.cpp.o CMakeFiles/untitled1.dir/StructsGlobal.cpp.o CMakeFiles/untitled1.dir/Decision.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/untitled1.dir
   POST_BUILD = :

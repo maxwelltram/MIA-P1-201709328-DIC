@@ -242,6 +242,7 @@ void entrada::comandoScript(vector<string> parametros){
     script(dir);
 }
 
+
 void entrada::script(string direc){
     cout<<"PROBANDO SI FUNCIONA ESTA ONDA\n";
     vector<string> vecL;
@@ -288,7 +289,7 @@ void entrada::comandos(string tokenC, vector<string> tks)
         DiscoLogica.ComandoMkdisk(tks);
     }else if(Equals(tokenC, "RMDISK")) {
         cout << "*****EJECUTANDO COMANDO RMDISK*****" << endl;
-        //LogDisco.rmdisk(tks);
+        DiscoLogica.ComandoRmdisk(tks);
     }else if(Equals(tokenC, "EXEC")){
         cout << "*****EJECUTANDO COMANDO EXEC*****" << endl;
         comandoScript(tks);

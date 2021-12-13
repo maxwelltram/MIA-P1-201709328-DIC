@@ -5,12 +5,15 @@
 #include "LogDisco.h"
 #include <vector>
 #include <algorithm>
+#include "Decision.h"
 
 using namespace std;
 
 //Variables a utilizar en toda la clase LogDisco
 int inicio;
 entrada entradita;
+decision decisiones;
+
 bool Err= false;
 //Variables para fit,unit y Dir en ComandoMkdisk
 string fit;
@@ -96,6 +99,63 @@ string LogDiscos::CorrigeParametrosUnit(string unit){
         unit = "M";
     }
     return unit;
+}
+
+void LogDiscos::ComandoRmdisk(vector<string> entrada){
+    string dir;
+    string AuxTokFor;
+    //Verificamos que no este vacia la cadena
+    if (entrada.size() ==0){
+        entradita.AlertaError("COMANDO RMDISK", "No se encontro ninguna dirección valida, vuelva a intentarlo");
+
+    }
+    //Revisamos la dirección y eliminamos los parametros ~:~ para poder usarla
+    for (string tokAux: entrada) {
+        AuxTokFor = tokAux.substr(0,tokAux.find(":"));
+        tokAux.erase(0,AuxTokFor.length()+2);
+        AuxTokFor = AuxTokFor.substr(0,AuxTokFor.find("~"));
+        if (entradita.Equals(AuxTokFor, "path")){
+            //Si es correcto, copiamos el valor hacia la variable dir
+            dir = tokAux;
+        }else{
+            //Error en la direccion
+            dir="";
+            entradita.AlertaError("COMANDO RMDISK","Se encontro un error en la direccion, en la linea: "+ AuxTokFor);
+            break;
+        }
+    }
+    if (!dir.empty()){
+        //Revisamos si trae alguna comilla
+        if (dir.substr(0,1)=="\"") {
+            dir = dir.substr(1, dir.length() - 2);
+        }
+        //Intentamos ejecutar el comando RMDISK
+        try{
+            FILE *archivo = fopen(dir.c_str(), "r");
+            if (archivo !=NULL){
+                //Validamos la extension del disco
+                if (!entradita.Equals(dir.substr(dir.find_last_of(".")+1),"disk")){
+                    entradita.AlertaError("COMANDO RMDISK", "La extension ingresada no es valida, debe de ser .disk");
+                    return;
+                }
+                fclose(archivo);
+                if (decisiones.Respuesta("¿Estas seguro de eliminar este archivo?")){
+                    if (remove(dir.c_str())==0){
+                        decisiones.Mensaje("COMANDO RMDISK", "El disco se ha eliminado exitosamente");
+                        return;
+                    }
+                }else{
+                    decisiones.Mensaje("COMANDO RMDISK","Se ha negado el proceso de eliminacion del disco");
+                    return;
+                }
+            }
+            entradita.AlertaError("COMANDO RMDISK", "No se ha encontrado el disco especificado en la ruta");
+        }
+        catch (const exception& e){
+            entradita.AlertaError("COMANDO RMDISK", "Se ha producido un error y no se logro eliminar el disco");
+        }
+    }
+
 }
 
 void LogDiscos::CrearDisco(string fi, string un,string tam, string pat){

@@ -24,7 +24,7 @@ public:
         int particion;
     } Auxiliar;
 
-
+    void ComandoRmdisk(vector <string> comando);
     string CorrigeParametrosFit(string fit);
     string CorrigeParametrosUnit(string unit);
     string BorrarEspacio(string var);
