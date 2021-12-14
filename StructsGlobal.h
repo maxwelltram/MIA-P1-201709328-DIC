@@ -15,6 +15,16 @@ public:
         char Tipo;
     }StructParticion;
 
+    typedef  struct EBRStruct{
+        int ParteInicio;
+        int ParteTamanio = 0;
+        int ParteSig=-1;
+        char ParteFit;
+        char ParteEstado ='0';
+        char ParteNombre[16];
+
+    }StructEBR;
+
 
     /*Struct del MBR con cada uno de sus campos y llamando
     al struct de particiones */

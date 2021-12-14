@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string>
 #include "Entrada.h"
-#include "LogDisco.h"
+#include "./LogDisco.h"
+#include "./StructsGlobal.h"
 #include <vector>
 #include <algorithm>
 #include "Decision.h"
@@ -380,11 +381,197 @@ void LogDiscos::ComandoFdisk(vector<string> entrada){
 }
 
 void LogDiscos::Particion(string size, string unit, string path, string type, string fit, string nam, string ad) {
+    try{
+        int estado = 0;
+        int i = stoi(size);
+        if(i<=0){
+            throw runtime_error("El valor de size, no es mayor a 0");
+        }
+        if(path.substr(0,1)=="\""){
+            path = path.substr(1, path.length()-2);
+        }
+        if(!(Auxx.Equals(type,"p") || Auxx.Equals(type,"e") || Auxx.Equals(type,"l"))){
+            throw runtime_error("El parametro type \"T\" tiene valores que no esta definidos.");
+        }
+        if(Auxx.Equals(unit,"b") || Auxx.Equals(unit,"k") || Auxx.Equals(unit,"m")){
+            if(Auxx.Equals(unit,"b")){
+                i *=  (Auxx.Equals(unit,"k"))? 1024: 1024*1024;
+            }
+        }else{
+            throw runtime_error("El parametro unit \"U\" tiene valores que no estan definidos.");
+        }
+        if(!(Auxx.Equals(fit,"bf") || Auxx.Equals(fit,"ff") || Auxx.Equals(fit,"wf"))){
+            throw runtime_error("El parametro fit \"F\" tiene valores que no estan definidos.");
+        }
+
+        FILE *archivo = fopen(path.c_str(), "rb+");
+        Structs::MBRStruct DiscoPart;
+        //Se valida que el disco especificado se encuentre o exista en esa direccion
+        if(archivo!=NULL){
+            rewind(archivo);
+            fread(&DiscoPart, sizeof(DiscoPart),1,archivo);
+        }else{
+            Auxx.Alerta("COMANDO FDISK", "El disco seleccionado, no exite o no se encuentra. "+path);
+            return;
+        }
+        fclose(archivo);
+        vector<Structs::StructParticion> particiones = JalaParticiones(DiscoPart);
+        vector<Auxiliar> prueba;
+
+        int Disp =0;
+        int tama= sizeof(DiscoPart);
+        int co=1;
+        int e = 0;
+
+        Structs::StructParticion StruExt;
+
+        for(Structs::StructParticion patron: particiones){
+            if(patron.DisponibilidadParte == '1'){
+                Auxiliar aux;
+                aux.termina = patron.IniciaParte + patron.TamanioParte;
+                aux.particion = co;
+                aux.principio = patron.IniciaParte;
+
+                aux.pre = aux.principio - tama;
+                tama = aux.termina;
+
+                if(Disp!=0){
+                    prueba.at(Disp-1).post = patron.IniciaParte - (prueba.at(Disp - 1).termina);
+                }
+                prueba.push_back(aux);
+                Disp++;
+                if(patron.Tipo =='E'|| patron.Tipo == 'e'){
+                    e++;
+                    StruExt = patron;
+                }
+            }
+            if(Disp == 4 && !(Auxx.Equals(type,"l"))){
+                throw runtime_error("Se han acabado las particiones, ya se han hecho 4");
+            }else if(e==1 && Auxx.Equals(type,"e")){
+                throw runtime_error("No se puede crear mas particiones logicas, unicamente particiones extendidas");
+            }
+            co++;
+        }
+        if(e==0 && Auxx.Equals(type,"l")) {
+            throw runtime_error("No se puede realizar la particion logica, quiza no existe una particion extendida");
+        }
+        if(Disp !=0){
+            prueba.at(prueba.size()-1.).post = DiscoPart.mbrTamanio - prueba.at(prueba.size()-1).termina;
+        }
+        try {
+            Busqueda(DiscoPart, nam,path);
+            Auxx.Alerta("COMANDO FDISK", "El nombre escrito ya existe, por favor proporcione otro");
+            return;
+        }catch (exception &e){
+        }
+
+        Structs::StructParticion Tra;
+
+        Tra.TamanioParte=i;
+        Tra.Tipo = toupper(type[0]);
+        Tra.DisponibilidadParte='1';
+        Tra.FitP= toupper(fit[0]);
+        strcpy(Tra.NombreParte,nam.c_str());
+
+        if(Auxx.Equals(type,"l")){
+            Analisis(Tra, StruExt,path);
+            return;
+        }
+        DiscoPart = Ajuste(DiscoPart, Tra, prueba, particiones, Disp);
+
+        FILE *AuxFile= fopen(path.c_str(), "rb+");
+            if(AuxFile!=NULL){
+                fseek(AuxFile, 0 , SEEK_SET);
+                fwrite(&DiscoPart,sizeof(Structs::StructMBR), 1, AuxFile);
+                if(Auxx.Equals(type,"e")) {
+                    Structs::StructEBR ebrr;
+                    ebrr.ParteInicio = estado;
+                    fseek(AuxFile, estado, SEEK_SET);
+                    fwrite(&ebrr, sizeof(Structs::StructEBR),1,AuxFile);
+                }
+                fclose(AuxFile);
+                Auxx.Respuesta("COMANDO FDISK", "La pinche particion fue creada con exito xD");
+            }
+        }
+        catch (invalid_argument &e){
+            Auxx.Alerta("COMANDO FDISK","El tamanio que trae el size no es valido, verifique que sea entero o mayor a 0");
+            return;
+    }
+        catch (exception &e){
+            Auxx.Alerta("COMANDO FDISK", e.what());
+            return;
+        }
+}
+
+void LogDiscos::Analisis(Structs::StructParticion particion, Structs::StructParticion auxi, string pa) {
 
 }
 
+Structs::MBRStruct
+LogDiscos::Ajuste(Structs::StructMBR mbr, Structs::StructParticion parti, vector<Auxiliar> aux,vector<Structs::StructParticion> particiAux, int unit) {
+
+}
+
+
+Structs::StructParticion LogDiscos::Busqueda(Structs::MBRStruct mbr, string nombre, string path){
+    Structs::StructParticion particiones[4];
+    bool extendida= false;
+    Structs::StructParticion PartExtend;
+
+
+    particiones[0]= mbr.mbrParticion1;
+    particiones[1]= mbr.mbrParticion2;
+    particiones[2]= mbr.mbrParticion3;
+    particiones[3]= mbr.mbrParticion4;
+
+    for(auto &particion : particiones){
+        if(particion.DisponibilidadParte =='1'){
+            if(Auxx.Equals(particion.NombreParte, nombre)){
+                return particion;
+            }else if(particion.Tipo == 'E'){
+                extendida=true;
+                PartExtend = particion;
+            }
+        }
+    }
+    if(extendida){
+        vector<Structs::StructEBR> EBR = ConsLog(PartExtend, path);
+        for (Structs::StructEBR  eb: EBR) {
+            if(eb.ParteEstado == '1'){
+                if(Auxx.Equals(eb.ParteNombre, nombre)){
+                    Structs::StructParticion AuxPart;
+                    AuxPart.DisponibilidadParte = '1';
+                    AuxPart.FitP = eb.ParteFit;
+                    AuxPart.TamanioParte = eb.ParteTamanio;
+                    AuxPart.Tipo = 'L';
+                    AuxPart.IniciaParte = eb.ParteInicio;
+                    strcpy(AuxPart.NombreParte, eb.ParteNombre);
+                    return AuxPart;
+                }
+            }
+        }
+    }
+    throw runtime_error("Verifique que la particion solicitada existe.");
+}
+
+
+vector<Structs::StructEBR> LogDiscos::ConsLog(Structs::StructParticion particion, string path) {
+
+}
+
+
+
 void LogDiscos::AgregarParti(string add, string unit, string name, string path) {
 
+}
+
+vector <Structs::StructParticion> LogDiscos::JalaParticiones(Structs::MBRStruct discoB){
+    vector<Structs::StructParticion> ParVe;
+    ParVe.push_back(discoB.mbrParticion1);
+    ParVe.push_back(discoB.mbrParticion2);
+    ParVe.push_back(discoB.mbrParticion3);
+    ParVe.push_back(discoB.mbrParticion4);
+    return ParVe;
 }
 
 void LogDiscos::BorraParti(string d, string path, string unit) {
