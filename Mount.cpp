@@ -38,12 +38,12 @@ void Mount::Desmontar(vector<string> entrada) {
 void Mount::DesmontarAgain(string ide) {
     try{
         string p=ide;
-        if(!(ide[0]=='6' && ide[1] == 5)){
-            throw runtime_error("Identificador no valido");
+        if(!(ide[0]=='v' && ide[1] == 'd')){
+            throw runtime_error("Identificador no valido o no existe");
         }
-        char letra=ide[ide.length()-1];
-        ide.erase(0.2);
-        ide.pop_back();
+        char letra=ide[ide.length()-2];
+        ide.erase(0,2);
+        ide.erase(0,1);
         int i = stoi(ide)-1;
         if(i<0){
             throw runtime_error("El identificador es invalido");
@@ -58,6 +58,7 @@ void Mount::DesmontarAgain(string ide) {
                 }
             }
         }
+        throw runtime_error("No se ha encontrado el id especificado, verifique que exista");
     }
     catch (invalid_argument &e){
         auxx.Alerta("COMANDO UNMOUNT", "El indentificador es invalido");
@@ -87,6 +88,12 @@ void Mount::Montar(vector<string> entrada){
             if(count(datos.begin(),datos.end(),dato)){
                 auto itr = find(datos.begin(),datos.end(),dato);
                 datos.erase(itr);
+                nombre = posi;
+            }
+        }else if(auxx.Equals(dato, "path")){
+            if(count(datos.begin(),datos.end(),dato)){
+                auto itr = find(datos.begin(),datos.end(), dato);
+                datos.erase(itr);
                 direccion = posi;
             }
         }
@@ -115,6 +122,7 @@ void Mount::MontarAgain(string path, string name) {
             if(!EBR.empty()){
                 Structs::EBRStruct ebrAux = EBR.at(0);
                 name=ebrAux.ParteNombre;
+
             }else{
                 throw runtime_error("Ocurrio un error al intentar montar la"
                                     "particion extendida");
@@ -125,11 +133,11 @@ void Mount::MontarAgain(string path, string name) {
                 for (int j = 0; j < 26; j++) {
                     if(Mount::ListaMontar[i].MontParticiones[j].esado == '0'){
                         ListaMontar[i].MontParticiones[j].esado='1';
-                        string let= to_string(i+1)+Diccionario.at(j);
+                        string let= Diccionario.at(j)+ to_string(i+1);
                         strcpy(ListaMontar[i].MontParticiones[j].nombre, name.c_str());
                         ListaMontar[i].MontParticiones[j].id= Diccionario.at(j);
 
-                        auxx.Respuesta("COMANDO MOUNT", "Mount realizado exitosamente en: "+let);
+                        auxx.Respuesta("COMANDO MOUNT", "Mount realizado exitosamente en: vd"+let);
                         return;
                     }
                 }
@@ -143,9 +151,9 @@ void Mount::MontarAgain(string path, string name) {
                     if(Mount::ListaMontar[i].MontParticiones[j].esado == '0'){
                         ListaMontar[i].MontParticiones[j].id = Diccionario.at(j);
                         ListaMontar[i].MontParticiones[j].esado = '1';
-                        string let = to_string(i+1)+Diccionario.at(j);
+                        string let = Diccionario.at(j)+ to_string(i+1);
                         strcpy(ListaMontar[i].MontParticiones[j].nombre, name.c_str());
-                        auxx.Respuesta("COMANDO MOUNT", "Mount realizado exitosamente en: "+let);
+                        auxx.Respuesta("COMANDO MOUNT", "Mount realizado exitosamente en: vd"+let);
                         return;
                     }
                 }

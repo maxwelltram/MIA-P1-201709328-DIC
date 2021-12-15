@@ -170,7 +170,11 @@ vector<string> entrada::splitTok(string tokensCad){
         }else if(estado==0 && pivote == '#'){
             continue;
             //Si el estado sera diferente de 0, tenemos diferentes instrucciones para cada estado
-        }else if (estado==0 && pivote =='/') {
+        }/*else if(estado ==0 && pivote == '#' && ){
+
+        }*/
+
+        else if (estado==0 && pivote =='/') {
             estado = 4;
             token+=pivote;
         }else if(estado!=0){
@@ -295,8 +299,12 @@ void entrada::comandos(string tokenC, vector<string> tks)
     }else if(Equals(tokenC, "FDISK")) {
         cout << "*****EJECUTANDO COMANDO FDISK*****\n";
         DiscoLogica.ComandoFdisk(tks);
-    }else if(Equals(tokenC,"MOUNT")){
-        cout<< "*****EJECUTANDO COMANDO MOUNT*****\n";
+    }else if(Equals(tokenC,"MOUNT")) {
+        cout << "*****EJECUTANDO COMANDO MOUNT*****\n";
+        ComMount.Montar(tks);
+    }else if(Equals(tokenC,"UNMOUNT")){
+        cout << "*****EJECUTANDO COMANDO unMOUNT*****\n";
+        ComMount.Desmontar(tks);
     }else if(Equals(tokenC, "EXEC")) {
         cout << "*****EJECUTANDO COMANDO EXEC*****\n";
         comandoScript(tks);
