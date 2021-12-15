@@ -288,13 +288,16 @@ void entrada::comandos(string tokenC, vector<string> tks)
         cout << "*****EJECUTANDO COMANDO MKDISK*****" << endl;
         DiscoLogica.ComandoMkdisk(tks);
     }else if(Equals(tokenC, "RMDISK")) {
-        cout << "*****EJECUTANDO COMANDO RMDISK*****" << endl;
+        cout << "*****EJECUTANDO COMANDO RMDISK*****\n";
         DiscoLogica.ComandoRmdisk(tks);
-    }else if(Equals(tokenC, "EXEC")){
-        cout << "*****EJECUTANDO COMANDO EXEC*****" << endl;
+    }else if(Equals(tokenC, "FDISK")){
+        cout<< "*****EJECUTANDO COMANDO FDISK*****\n";
+        DiscoLogica.ComandoFdisk(tks);
+    }else if(Equals(tokenC, "EXEC")) {
+        cout << "*****EJECUTANDO COMANDO EXEC*****\n";
         comandoScript(tks);
     }else if (Equals(tokenC.substr(0,1), "#")){
-        cout<<"*****EJECUTANDO COMANDO COMENTARIO*****\n" << endl;
+        cout<<"*****EJECUTANDO COMANDO COMENTARIO*****\n";
         AlertaMensaje("COMENTARIO",tokenC);
     }
 }

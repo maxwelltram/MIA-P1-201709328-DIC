@@ -40,15 +40,14 @@ public:
     vector<Structs::StructParticion> JalaParticiones(Structs:: StructMBR disco);
 
 
-    Structs::StructMBR
-    Ajuste(Structs::StructMBR mbr, Structs::StructParticion parti, vector<Auxiliar> aux, vector<Structs::StructParticion> particiAux, int unit);
+    Structs::StructMBR Ajuste(Structs::StructMBR mbr, Structs::StructParticion parti, vector<Auxiliar> aux, vector<Structs::StructParticion> particiAux, int unit);
 
 
     vector<Structs::StructEBR> ConsLog(Structs::StructParticion particion, string path);
 
     Structs::StructParticion Busqueda(Structs::MBRStruct mbr, string nombre, string path);
 private:
-    aux Aux;
+    aux Auxx;
 };
 
 #endif

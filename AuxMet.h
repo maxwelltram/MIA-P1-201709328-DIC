@@ -12,6 +12,7 @@ public:
   aux();
   string Minus(string entrada);
   string Mayus(string entrada);
+  string convertToString(char* a, int size);
   bool Equals(string primero, string segundo);
   void Respuesta(string comando, string dato);
   void Alerta(string comando, string accion);

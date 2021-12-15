@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
-#include "Entrada.h"
+#include "./Entrada.h"
 #include "./LogDisco.h"
 #include "./StructsGlobal.h"
 #include <vector>
@@ -15,7 +15,7 @@ using namespace std;
 int inicio;
 entrada entradita;
 decision decisiones;
-aux Auxx;
+int estado;
 
 bool Err= false;
 //Variables para fit,unit y Dir en ComandoMkdisk
@@ -266,10 +266,10 @@ void LogDiscos::CrearDisco(string fi, string un,string tam, string pat){
 
 void LogDiscos::ComandoFdisk(vector<string> entrada){
     bool banderaBorrar= false;
-    string id;
+
     for(string pivo : entrada){
-        id = Auxx.Minus(pivo.substr(0, pivo.find(':')));
-        pivo.erase(0, id.length()+2);
+        string id = Auxx.Minus(pivo.substr(0, pivo.find('~')));
+        pivo.erase(0, id.length()+3);
         if(pivo.substr(0,1)=="\""){
             pivo = pivo.substr(1, pivo.length()-2);
         }
@@ -288,8 +288,8 @@ void LogDiscos::ComandoFdisk(vector<string> entrada){
         string Path ;
 
         for ( auto pivo: entrada){
-            string Auxid = Auxx.Minus(pivo.substr(0,pivo.find(':')));
-            pivo.erase(0, Auxid.length()+2);
+            string Auxid = Auxx.Minus(pivo.substr(0,pivo.find('~')));
+            pivo.erase(0, Auxid.length()+3);
             if(pivo.substr(0,1)=="\""){
                 pivo = pivo.substr(1,pivo.length()-2);
             }
@@ -314,8 +314,8 @@ void LogDiscos::ComandoFdisk(vector<string> entrada){
                     Path=pivo;
                 }
             }else if(Auxx.Equals(Auxid,"name")){
-                if (count(parametro.begin(), parametro.end(), id)) {
-                    auto itr = find(parametro.begin(), parametro.end(), id);
+                if (count(parametro.begin(), parametro.end(), Auxid)) {
+                    auto itr = find(parametro.begin(), parametro.end(), Auxid);
                     parametro.erase(itr);
                     Name = pivo;
                 }
@@ -344,8 +344,8 @@ void LogDiscos::ComandoFdisk(vector<string> entrada){
         string borrar;
 
         for (auto pivo: entrada) {
-            string Auxid = Auxx.Minus(pivo.substr(0, pivo.find(':')));
-            pivo.erase(0, Auxid.length()+2);
+            string Auxid = Auxx.Minus(pivo.substr(0, pivo.find('~')));
+            pivo.erase(0, Auxid.length()+3);
             if(pivo.substr(0,1)=="\""){
                 pivo = pivo.substr(1, pivo.length()-2);
             }
@@ -382,7 +382,7 @@ void LogDiscos::ComandoFdisk(vector<string> entrada){
 
 void LogDiscos::Particion(string size, string unit, string path, string type, string fit, string nam, string ad) {
     try{
-        int estado = 0;
+        estado = 0;
         int i = stoi(size);
         if(i<=0){
             throw runtime_error("El valor de size, no es mayor a 0");
@@ -394,7 +394,7 @@ void LogDiscos::Particion(string size, string unit, string path, string type, st
             throw runtime_error("El parametro type \"T\" tiene valores que no esta definidos.");
         }
         if(Auxx.Equals(unit,"b") || Auxx.Equals(unit,"k") || Auxx.Equals(unit,"m")){
-            if(Auxx.Equals(unit,"b")){
+            if(!Auxx.Equals(unit,"b")){
                 i *=  (Auxx.Equals(unit,"k"))? 1024: 1024*1024;
             }
         }else{
@@ -504,12 +504,172 @@ void LogDiscos::Particion(string size, string unit, string path, string type, st
 }
 
 void LogDiscos::Analisis(Structs::StructParticion particion, Structs::StructParticion auxi, string pa) {
+    Structs::StructEBR  Ana;
+    Ana.ParteEstado = '1';
+    Ana.ParteTamanio = particion.TamanioParte;
+    Ana.ParteFit = particion.FitP;
+    Ana.ParteSig = -1;
 
+    strcpy(Ana.ParteNombre, particion.NombreParte);
+
+    FILE *archivo = fopen(pa.c_str(),"rb+");
+    rewind(archivo);
+    Structs::StructEBR TemEBR;
+    fseek(archivo, auxi.IniciaParte, SEEK_SET);
+    fread(&TemEBR, sizeof(Structs::StructEBR),1, archivo);
+    int taman;
+    do{
+        taman += sizeof(Structs::StructEBR)+ TemEBR.ParteTamanio;
+        if(TemEBR.ParteEstado == '0' && TemEBR.ParteSig == -1){
+            Ana.ParteInicio = TemEBR.ParteInicio;
+            Ana.ParteSig = Ana.ParteInicio + Ana.ParteTamanio + sizeof(Structs::StructEBR);
+            if((auxi.TamanioParte - taman)<= Ana.ParteTamanio){
+                throw runtime_error("No existe más espacio disponible, Particion logica erronea");
+            }
+            fseek(archivo, Ana.ParteInicio,SEEK_SET);
+            fwrite(&Ana, sizeof(Structs::StructEBR),1,archivo);
+            fseek(archivo, Ana.ParteSig, SEEK_SET);
+            Structs::StructEBR Agrega;
+            Agrega.ParteEstado = '0';
+            Agrega.ParteSig = -1;
+            Agrega.ParteInicio = Ana.ParteSig;
+            fseek(archivo, Agrega.ParteInicio, SEEK_SET);
+            fwrite(&Agrega, sizeof(Structs::StructEBR),1,archivo);
+            Auxx.Respuesta("COMANDO FDISK", "La particion se creo exitosamente :D");
+            fclose(archivo);
+            return;
+        }
+        fseek(archivo, TemEBR.ParteSig,SEEK_SET);
+        fread(&TemEBR, sizeof(Structs::StructEBR),1,archivo);
+    } while (true);
 }
 
-Structs::MBRStruct
-LogDiscos::Ajuste(Structs::StructMBR mbr, Structs::StructParticion parti, vector<Auxiliar> aux,vector<Structs::StructParticion> particiAux, int unit) {
+//Falta ajuste, falta getlogics que es ConsLog, falta logic que es Analisis, agregar particion y borrar particion
 
+Structs::MBRStruct LogDiscos::Ajuste(Structs::StructMBR mbr, Structs::StructParticion parti, vector<Auxiliar> aux,vector<Structs::StructParticion> particiAux, int unit) {
+    if(unit == 0){
+        parti.IniciaParte = sizeof(mbr);
+        estado = parti.IniciaParte;
+        mbr.mbrParticion1 = parti;
+        return mbr;
+    }else{
+        Auxiliar toUse;
+        int cl=0;
+        for (Auxiliar tran: aux) {
+            if(cl == 0){
+                toUse = tran;
+                cl++;
+                continue;
+            }
+            if(toupper( mbr.mbrDiscoFit)=='F'){
+                if(toUse.pre >= parti.TamanioParte || toUse.post >= parti.TamanioParte){
+                    break;
+                }
+                toUse  = tran;
+            }else if(toupper(mbr.mbrDiscoFit) == 'B'){
+                if(toUse.pre < parti.TamanioParte || toUse.post < parti.TamanioParte){
+                    toUse = tran;
+                }else{
+                    if(tran.pre >= parti.TamanioParte || tran.post >= parti.TamanioParte){
+                        int au1 = toUse.post- parti.TamanioParte;
+                        int bau1 = toUse.pre    - parti.TamanioParte;
+                        int au2 = tran.post - parti.TamanioParte;
+                        int bau2 = tran.pre- parti.TamanioParte;
+
+                        if((bau1< bau2 && bau1< au2) || (au1<bau2 && au1 < au2)){
+                            cl++;
+                            continue;
+                        }
+                        toUse = tran;
+                    }
+                }
+            }else if(toupper(mbr.mbrDiscoFit) =='W'){
+                if(!(toUse.pre >= parti.TamanioParte) || !(toUse.post >= parti.TamanioParte)){
+                    toUse = tran;
+                }else{
+                    if(tran.pre >= parti.TamanioParte || tran.post >= parti.TamanioParte){
+                                                int au1 = toUse.post- parti.TamanioParte;
+                        int bau1 = toUse.pre    - parti.TamanioParte;
+                        int au2 = tran.post - parti.TamanioParte;
+                        int bau2 = tran.pre- parti.TamanioParte;
+
+                        if((bau1< bau2 && bau1< au2) || (au1<bau2 && au1 < au2)){
+                            cl++;
+                            continue;
+                        }
+                        toUse = tran;
+                    }
+                }
+            }
+            cl++;
+        }
+        if(toUse.pre >= parti.TamanioParte || toUse.post >= parti.TamanioParte){
+            if(toupper(mbr.mbrDiscoFit) == 'F'){
+                if(toUse.pre >= parti.TamanioParte){
+                    parti.IniciaParte = (toUse.principio - toUse.pre);
+                    estado = parti.IniciaParte;
+                }else{
+                    parti.IniciaParte = toUse.termina;
+                    estado = parti.IniciaParte;
+                }
+            }else if(toupper(mbr.mbrDiscoFit) == 'B'){
+                int bau1= toUse.pre - parti.TamanioParte;
+                int au1 = toUse.post - parti.TamanioParte;
+                if((toUse.pre >= parti.TamanioParte && bau1 < au1)|| !(toUse.post >= parti.IniciaParte)){
+                    parti.IniciaParte = (toUse.principio - toUse.pre);
+                    estado = parti.IniciaParte;
+                }else{
+                    parti.IniciaParte = toUse.termina;
+                    estado = parti.IniciaParte;
+                }
+            }else if(toupper(mbr.mbrDiscoFit)=='W'){
+                int bau1= toUse.pre - parti.TamanioParte;
+                int au1= toUse.post - parti.TamanioParte;
+
+                if((toUse.pre >= parti.TamanioParte && bau1 > au1) || !(toUse.post >= parti.IniciaParte)){
+                    parti.IniciaParte = (toUse.principio - toUse.pre);
+                    estado = parti.IniciaParte;
+                }
+            }
+            Structs::StructParticion particiones[4];
+            for (int i = 0 ; i< particiAux.size(); i++) {
+                particiones[i] = particiAux.at(i);
+            }
+            for (auto &particAux: particiones) {
+                if(particAux.DisponibilidadParte == '0'){
+                    particAux = parti;
+                    break;
+                }
+            }
+
+            Structs::StructParticion auxPa;
+            for (int i = 3; i >= 0 ; i--) {
+                for (int j = 0; j < i; j++) {
+                    if((particiones[j].DisponibilidadParte > particiones[j+1].IniciaParte)){
+                        auxPa = particiones[j+1];
+                        particiones[j+1] = particiones[j];
+                        particiones[j] = auxPa;
+                    }
+                }
+            }
+            for (int i = 3; i >=0 ; i--) {
+                for (int j = 0; j < i; j++) {
+                    if(particiones[j].DisponibilidadParte=='0'){
+                        auxPa = particiones[j];
+                        particiones[j] = particiones[j+1];
+                        particiones[j+1] = auxPa;
+                    }
+                }
+            }
+            mbr.mbrParticion1 = particiones[0];
+            mbr.mbrParticion1 = particiones[1];
+            mbr.mbrParticion1 = particiones[2];
+            mbr.mbrParticion1 = particiones[3];
+            return mbr;
+        }else{
+            throw runtime_error("ERROR, No se encontro espacio disponible y suficiente");
+        }
+    }
 }
 
 
@@ -556,7 +716,26 @@ Structs::StructParticion LogDiscos::Busqueda(Structs::MBRStruct mbr, string nomb
 
 
 vector<Structs::StructEBR> LogDiscos::ConsLog(Structs::StructParticion particion, string path) {
+    vector<Structs::StructEBR> ebrAux;
 
+    FILE *archivo = fopen(path.c_str(), "rb+");
+    rewind(archivo);
+    Structs::StructEBR TemEBR;
+    fseek(archivo, particion.IniciaParte,SEEK_SET);
+    fread(&TemEBR, sizeof(Structs::StructEBR),1,archivo);
+    do{
+        if(!(TemEBR.ParteEstado == '0' && TemEBR.ParteSig == -1)){
+            if(TemEBR.ParteEstado !='0'){
+                ebrAux.push_back(TemEBR);
+            }
+            fseek(archivo, TemEBR.ParteSig, SEEK_SET);
+            fread(&TemEBR, sizeof(Structs::StructEBR),1,archivo);
+        }else{
+            fclose(archivo);
+            break;
+        }
+    } while (true);
+    return ebrAux;
 }
 
 
@@ -575,7 +754,105 @@ vector <Structs::StructParticion> LogDiscos::JalaParticiones(Structs::MBRStruct 
 }
 
 void LogDiscos::BorraParti(string d, string path, string unit) {
+    try{
+        if(path.substr(0,1)=="\""){
+            path=path.substr(1,path.length()-2);
+        }
+        if(!(Auxx.Equals(d,"fast") || Auxx.Equals(d,"full"))){
+            throw runtime_error("La función delete, necesita valores fast o full para lograr borrar\n");
+        }
 
+        FILE *archivo = fopen(path.c_str(),"rb+");
+        if(archivo==NULL){
+            throw runtime_error("El disco no se encuentra en la ruta especificada");
+        }
+        Structs::StructMBR DiscoDel;
+
+        rewind(archivo);
+        fread(&DiscoDel, sizeof(Structs::MBRStruct),1, archivo);
+
+        Busqueda(DiscoDel, unit, path);
+
+        Structs::StructParticion particiones[4];
+        particiones[0] = DiscoDel.mbrParticion1;
+        particiones[1] = DiscoDel.mbrParticion2;
+        particiones[2] = DiscoDel.mbrParticion3;
+        particiones[3] = DiscoDel.mbrParticion4;
+
+        Structs::StructParticion  Ant;
+        bool bandera = false;
+
+        for (int i = 0; i < 4; i++) {
+            if(particiones[i].DisponibilidadParte =='1') {
+
+
+                if (particiones[i].Tipo == 'P') {
+                    if (particiones[i].Tipo == 'P') {
+                        if (Auxx.Equals(d, "fast")) {
+                            particiones[i].DisponibilidadParte = '0';
+                        } else {
+                            Ant = particiones[i];
+                            particiones[i] = Structs::StructParticion();
+                            bandera = true;
+                        }
+                        break;
+                    }
+                } else {
+                    if (Auxx.Equals(particiones[i].NombreParte, unit)) {
+                        if (Auxx.Equals(d, "fast")) {
+                            particiones[i].DisponibilidadParte = '0';
+                        } else {
+                            Ant = particiones[i];
+                            particiones[i] = Structs::StructParticion();
+                            bandera = true;
+                        }
+                        break;
+                    }
+                    vector<Structs::StructEBR> AuxEBR = ConsLog(particiones[i], path);
+                    int contador = 0;
+                    for (Structs::StructEBR EBR: AuxEBR) {
+                        if (Auxx.Equals(EBR.ParteNombre, unit)) {
+                            EBR.ParteEstado = '0';
+                        }
+                        fseek(archivo, EBR.ParteInicio, SEEK_SET);
+                        fwrite(&EBR, sizeof(Structs::EBRStruct), 1, archivo);
+                        contador++;
+                    }
+                    Auxx.Respuesta("COMANDO FDISK - FUNCION DELETE",
+                                   "La particion se ha eliminado exitosamente :D");
+                    return;
+                }
+            }
+        }
+        Structs::StructParticion Auxiliar;
+        for (int i = 3; i >= 0; i--) {
+            for (int j = 0; j < i; j++) {
+                if (particiones[j].DisponibilidadParte == '0') {
+                    Auxiliar = particiones[j];
+                    particiones[j] = particiones[j + 1];
+                    particiones[j + 1] = Auxiliar;
+                }
+            }
+        }
+        DiscoDel.mbrParticion1 = particiones[0];
+        DiscoDel.mbrParticion2 = particiones[1];
+        DiscoDel.mbrParticion3 = particiones[2];
+        DiscoDel.mbrParticion4 = particiones[3];
+        rewind(archivo);
+        fwrite(&DiscoDel,sizeof(Structs::StructMBR),1,archivo);
+        if(bandera){
+            fseek(archivo, Ant.IniciaParte,SEEK_SET);
+            int AuxIn=static_cast<int>(Ant.TamanioParte/2);
+            fwrite("\0",sizeof ("\0"),AuxIn,archivo);
+        }
+        Auxx.Respuesta("COMANDO FDISK - FUNCION DELETE",
+                       "La particion se ha eliminado exitosamente :D");
+        fclose(archivo);
+    }
+    catch (exception &e){
+        Auxx.Alerta("COMANDO FDISK- FUNCION DELETE", e.what());
+        return;
+    }
 }
 
 string LogDiscos::BorrarEspacio(string Variable) {
