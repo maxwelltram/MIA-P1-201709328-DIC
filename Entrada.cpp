@@ -5,8 +5,10 @@
 #include <fstream>
 #include <cstdlib>
 #include "Entrada.h"
+#include "Mount.h"
 
 LogDiscos DiscoLogica;
+Mount ComMount;
 
 using namespace std;
 string tok;
@@ -290,9 +292,11 @@ void entrada::comandos(string tokenC, vector<string> tks)
     }else if(Equals(tokenC, "RMDISK")) {
         cout << "*****EJECUTANDO COMANDO RMDISK*****\n";
         DiscoLogica.ComandoRmdisk(tks);
-    }else if(Equals(tokenC, "FDISK")){
-        cout<< "*****EJECUTANDO COMANDO FDISK*****\n";
+    }else if(Equals(tokenC, "FDISK")) {
+        cout << "*****EJECUTANDO COMANDO FDISK*****\n";
         DiscoLogica.ComandoFdisk(tks);
+    }else if(Equals(tokenC,"MOUNT")){
+        cout<< "*****EJECUTANDO COMANDO MOUNT*****\n";
     }else if(Equals(tokenC, "EXEC")) {
         cout << "*****EJECUTANDO COMANDO EXEC*****\n";
         comandoScript(tks);
