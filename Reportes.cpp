@@ -48,8 +48,10 @@ void Reportes::generaReporte(vector<string> entradita, Mount monta) {
         return;
     }
 
-    if(auxMet.Equals(name,"MBR")){
-        ReporteMBR(path,id);
+    if(auxMet.Equals(name,"MBR")) {
+        ReporteMBR(path, id);
+    }else if(auxMet.Equals(name,"DISK")){
+        ReporteDisk(path,id);
     }else{
         auxMet.Alerta("COMANDO REPORTE", "El reporte ingresado, no es valido o no existe");
     }
@@ -191,7 +193,7 @@ void Reportes::ReporteMBR(string path, string ide) {
                                 to_string(AuxEBR.ParteTamanio) + "</td>\n"
                                                            "</tr>\n"
                                                            "<tr>\n"
-                                                           "<td>part_next" + to_string(contador + 1) + "</td>\n"
+                                                           "<td>" + to_string(contador + 1) + "</td>\n"
                                                                                                     "<td>" +
                                 to_string(AuxEBR.ParteSig) + "</td>\n"
                                                            "</tr>\n"
@@ -214,5 +216,166 @@ void Reportes::ReporteMBR(string path, string ide) {
         auxMet.Respuesta("COMANDO REPORTE", "Se ha generado el reporte MBR correctamente");
     }catch (exception &e){
         auxMet.Alerta("COMANDO REPORTE", e.what());
+    }
+}
+
+void Reportes::ReporteDisk(string path, string ide) {
+    try {
+        string direccion;
+        Structs::StructParticion particiones = Montar.BusquedaMontar(ide, &direccion);
+
+        FILE *archivo = fopen(direccion.c_str(), "rb+");
+        if (archivo == NULL) {
+            throw runtime_error("El disco no se encontro o no existe");
+        }
+
+        Structs::StructMBR DiscoAct;
+        rewind(archivo);
+        fread(&DiscoAct, sizeof(Structs::StructMBR), 1, archivo);
+        fclose(archivo);
+
+        string aux = path.substr(0, path.find('.'));
+        aux += ".dot";
+        FILE *conca = fopen(aux.c_str(), "r");
+        if (conca == NULL) {
+            string coman = "mkdir -p \"" + aux + "\"";
+            string coman2 = "rmdir \"" + aux + "\"";
+            system(coman.c_str());
+            system(coman2.c_str());
+        } else {
+            fclose(conca);
+        }
+        Structs::StructParticion particion[4];
+        particion[0] = DiscoAct.mbrParticion1;
+        particion[1] = DiscoAct.mbrParticion2;
+        particion[2] = DiscoAct.mbrParticion3;
+        particion[3] = DiscoAct.mbrParticion4;
+        Structs::StructParticion extendida;
+
+        bool Auxext = false;
+        for (int i = 0; i < 4; ++i) {
+            if (particion[i].DisponibilidadParte == '1') {
+                if (particion[i].Tipo == 'E') {
+                    Auxext = true;
+                    extendida = particion[i];
+                }
+            }
+        }
+
+        string content;
+
+        content = "digraph G{\n"
+                    "rankdir=TB;\n"
+                    "forcelabels= true;\n"
+                    "graph [ dpi = \"600\" ]; \n"
+                    "node [shape = plaintext];\n";
+        content += "nodo1 [label = <<table>\n";
+        content += "<tr>\n";
+
+        int posicion[5] = {0, 0, 0, 0, 0};
+        int posicion2[5] = {0, 0, 0, 0, 0};
+        posicion[0] = DiscoAct.mbrParticion1.IniciaParte - (1 + sizeof(Structs::StructMBR));
+        posicion[1] =
+                DiscoAct.mbrParticion2.IniciaParte -
+                (DiscoAct.mbrParticion1.IniciaParte + DiscoAct.mbrParticion1.TamanioParte);
+        posicion[2] =
+                DiscoAct.mbrParticion3.IniciaParte -
+                (DiscoAct.mbrParticion2.IniciaParte + DiscoAct.mbrParticion2.TamanioParte);
+        posicion[3] =
+                DiscoAct.mbrParticion4.IniciaParte -
+                (DiscoAct.mbrParticion3.IniciaParte + DiscoAct.mbrParticion3.TamanioParte);
+        posicion[4] =
+                DiscoAct.mbrTamanio + 1 - (DiscoAct.mbrParticion4.IniciaParte + DiscoAct.mbrParticion4.TamanioParte);
+        copy(posicion, posicion2, posicion2);
+        for (size_t j = 0; j < 5; j++) {
+            bool negative = false;
+            for (size_t i = 0; i < 4; i++) {
+                if (posicion[i] < 0) {
+                    negative = true;
+                }
+                if (posicion[i] <= 0 && posicion2[i] <= 0 && negative && posicion[i + 1] > 0) {
+                    posicion[i] = posicion[i] + posicion[i + 1];
+                    posicion[i + 1] = 0;
+                }
+            }
+            negative = false;
+        }
+        int a = 0;
+        string tempa;
+        if (Auxext) {
+            tempa = "<tr>\n";
+            Structs::StructEBR EBRAux;
+            FILE *extendi = fopen(direccion.c_str(), "r+b");
+            fseek(extendi, extendida.IniciaParte, SEEK_SET);
+            fread(&EBRAux, sizeof(Structs::StructEBR), 1, extendi);
+            fclose(extendi);
+            while (EBRAux.ParteSig != -1) {
+                float res = (float) EBRAux.ParteTamanio / (float) DiscoAct.mbrTamanio;
+                res = round(res * 10000.00F) / 100.00F;
+                tempa += "<td>EBR</td>";
+                tempa += "<td>Logica\n" + to_string(res) + "% del disco</td>\n";
+                float resta = (float) EBRAux.ParteSig - ((float) EBRAux.ParteInicio + (float) EBRAux.ParteTamanio);
+                resta = resta / DiscoAct.mbrTamanio;
+                resta = resta * 10000.00F;
+                resta = round(resta) / 100.00F;
+                if (resta != 0) {
+                    tempa += "<td>Logica\n" + to_string(resta) + "% libre del disco</td>\n";
+                    a++;
+                }
+                a += 2;
+                FILE *ext2 = fopen(path.c_str(), "r+b");
+                fseek(ext2, EBRAux.ParteSig, SEEK_SET);
+                fread(&aux, sizeof(Structs::StructEBR), 1, ext2);
+                fclose(ext2);
+            }
+            float re = (float) EBRAux.ParteTamanio / (float) DiscoAct.mbrTamanio;
+            re = round(re * 10000.00F) / 100.00F;
+            tempa += "<td>EBR</td>";
+            tempa += "<td>Logica\n" + to_string(re) + "% del disco</td>\n";
+            float resta = (float) extendida.TamanioParte -
+                          ((float) EBRAux.ParteInicio + (float) EBRAux.ParteTamanio - (float) extendida.IniciaParte);
+            resta = resta / DiscoAct.mbrTamanio;
+            resta = resta * 10000.00F;
+            resta = round(resta) / 100.00F;
+            if (resta != 0) {
+                tempa += "<td>Libre\n" + to_string(resta) + "% del disco</td>\n";
+                a++;
+            }
+            tempa += "</tr>\n\n";
+            a += 2;
+        }
+        for (int i = 0; i < 4; ++i) {
+            if (particion[i].Tipo == 'E') {
+                content += "<td COLSPAN='" + to_string(a) + "'> Extendida </td>\n";
+            } else {
+                if (posicion[i] != 0) {
+                    float res = (float) posicion[i] / (float) DiscoAct.mbrTamanio;
+                    res = round(res * 100.0F * 100.0F) / 100.0F;
+                    content += "<td ROWSPAN='2'> Libre \n" + to_string(res) + "% del disco</td>";
+                } else {
+                    float res = ((float) particion[i].TamanioParte) / (float) DiscoAct.mbrTamanio;
+                    res = round(res * 10000.00F) / 100.00F;
+                    content += "<td ROWSPAN='2'> Primaria \n" + to_string(res) + "% del disco</td>";
+                }
+            }
+
+        }
+        if (posicion[4] != 0) {
+            float res = (float) posicion[4] / (float) DiscoAct.mbrTamanio;
+            res = round(res * 100.0F * 100.0F) / 100.0F;
+            content += "<td ROWSPAN='2'> Libre \n" + to_string(res) + "% del disco</td>";
+        }
+        content += "</tr>\n\n";
+        content += tempa;
+        content += "</table>>];\n}\n";
+        ofstream outfile(aux);
+        outfile << content.c_str() << endl;
+        outfile.close();
+        string function = "dot -Tjpg " + aux + " -o " + path;
+        system(function.c_str());
+
+        auxMet.Respuesta("COMANDO REPORT","El reporte DISK se genero de manera exitosa");
+    }catch (exception &e){
+        auxMet.Alerta("COMANDO REPORT", e.what());
     }
 }

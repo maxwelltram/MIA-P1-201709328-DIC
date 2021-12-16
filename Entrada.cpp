@@ -30,9 +30,9 @@ void LimpiarPantalla(){
 }
 
 void entrada::MenuInicio(){
-    cout << "------------------------------BIENVENIDO A LA APLICACIÓN DE COMANDOS ---------------------------\n" << endl;
-    cout << "-------------------------------ESCRIBA EXIT PARA SALIR DE LA APP--------------------------------\n" << endl;
-    cout << "*";
+    cout << "------------------------------BIENVENIDO A LA APLICACIÓN DE COMANDOS\n" << endl;
+    cout << "-------------------------------ESCRIBA EXIT PARA SALIR DE LA APP\n" << endl;
+    cout << "Escriba acá su comando:    ";
 
     while (true){
         //Recibe comando
@@ -60,10 +60,9 @@ void entrada::MenuInicio(){
         cout << "\n**********Programa en pausa**********\nPresione enter, para poder continuar:" << endl;
         getline(cin,comando);
         LimpiarPantalla();
-        cout << "------------------------------BIENVENIDO A LA APLICACIÓN DE COMANDOS ---------------------------\n" << endl;
-        cout << "-------------------------------ESCRIBA EXIT PARA SALIR DE LA APP--------------------------------\n" << endl;
-        cout << "*";
-
+        cout << "------------------------------BIENVENIDO A LA APLICACIÓN DE COMANDOS\n" << endl;
+        cout << "-------------------------------ESCRIBA EXIT PARA SALIR DE LA APP\n" << endl;
+        cout << "Escriba acá su comando:    ";
     }
 }
 

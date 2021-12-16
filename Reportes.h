@@ -16,6 +16,7 @@ public:
     Reportes();
     void generaReporte(vector<string> context, Mount monta);
     void ReporteMBR(string path, string ide);
+    void ReporteDisk(string path, string ide);
 };
 
 
