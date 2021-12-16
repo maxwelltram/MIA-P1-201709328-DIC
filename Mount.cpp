@@ -166,6 +166,39 @@ void Mount::MontarAgain(string path, string name) {
     }
 }
 
+Structs::StructParticion Mount::BusquedaMontar(string ide, string *path) {
+    if(!(ide[0] == 'v' && ide[1]== 'd')){
+        throw runtime_error("El id no es valido, debe empezar con vd");
+    }
+    string ant=ide;
+    char letra = ide[ide.length()-2];
+    ide.erase(0,2);
+    ide.erase(0,1);
+    int i = stoi(ide);
+    if(i<0){
+        throw runtime_error("El id no es valido, verifiquelo");
+    }
+
+    for (int j = 0; j < 26; j++) {
+        if(ListaMontar[i].MontParticiones[j].esado == '1') {
+            if (ListaMontar[i].MontParticiones[j].id == letra) {
+                FILE *archivo = fopen(ListaMontar[i].path, "r");
+                if (archivo == NULL) {
+                    throw ("El disco solicitado, no existe");
+                }
+
+                Structs::StructMBR DiscoBus;
+                rewind(archivo);
+                fread(&DiscoBus, sizeof(Structs::StructMBR), 1, archivo);
+                fclose(archivo);
+                *path = ListaMontar[i].path;
+                return MetoDisco.Busqueda(DiscoBus, ListaMontar[i].MontParticiones[j].nombre, ListaMontar[i].path);
+            }
+        }
+    }
+    throw runtime_error("La partición que se ingreso, no se encuentra");
+}
+
 void Mount::ListaMontaciones(){
     for (int i = 0; i < 99; i++) {
         for (int j = 0; j < 26;  j++) {

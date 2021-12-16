@@ -24,7 +24,7 @@ string unit;
 string Dir;
 
 LogDiscos::LogDiscos(){}
-
+//exec -path~:~/home/maxwelltram/Escritorio/Entrada.sh
 void LogDiscos::ComandoMkdisk(vector<string> parametros){
     string Auxpara;
     string tamanio;
@@ -37,13 +37,13 @@ void LogDiscos::ComandoMkdisk(vector<string> parametros){
         parametro.erase(0,Auxpara.length()+2);
         Auxpara = Auxpara.substr(0,Auxpara.find("~"));
 
-        if (entradita.Equals(Auxpara,"f")){
+        if (entradita.Equals(Auxpara,"fit")){
             if (fit.empty()){
                 fit = parametro;
             }else{
                 entradita.AlertaError( "ERROR EN  MKDISK", "Sucedio un problema con el fit \"F\" en la linea:"+ Auxpara);
             }
-        }else if (entradita.Equals(Auxpara, "u")){
+        }else if (entradita.Equals(Auxpara, "unit")){
             if (unit.empty()){
                 unit = parametro;
             }else{
@@ -741,7 +741,74 @@ vector<Structs::StructEBR> LogDiscos::ConsLog(Structs::StructParticion particion
 
 
 void LogDiscos::AgregarParti(string add, string unit, string name, string path) {
+    try{
+        int i = stoi(add);
+        if(Auxx.Equals(unit,"b")|| Auxx.Equals(unit,"k")|| Auxx.Equals(unit,"m")){
+            if(!Auxx.Equals(unit,"b")){
+                i *= (Auxx.Equals(unit,"k")) ?1024: 1024*1024;
+            }
+        }else{
+            throw runtime_error("EL valor unit no es valido");
+        }
 
+        FILE *archivo= fopen(path.c_str(),"rb+");
+        if(archivo==NULL){
+            throw runtime_error("El disco no se encontro o no existe");
+        }
+
+        Structs::StructMBR DiscoAct;
+        rewind(archivo);
+        fread(&DiscoAct, sizeof(Structs::StructMBR),1,archivo);
+
+        Busqueda(DiscoAct,name,path);
+
+        Structs::StructParticion particiones[4];
+        particiones[0] = DiscoAct.mbrParticion1;
+        particiones[1] = DiscoAct.mbrParticion2;
+        particiones[2] = DiscoAct.mbrParticion3;
+        particiones[3] = DiscoAct.mbrParticion4;
+
+        for (int j = 0; j < 4; j++) {
+            if(particiones[j].DisponibilidadParte == '1'){
+                if(Auxx.Equals(particiones[j].NombreParte, name)){
+                    if((particiones[j].TamanioParte+(i))>0){
+                        if(i!=3){
+                            if(particiones[i+1].IniciaParte !=0){
+                                if(((particiones[j].TamanioParte +(i)+
+                                particiones[j].IniciaParte)<=
+                                particiones[j+1].IniciaParte)){
+                                    particiones[j].TamanioParte+=i;
+                                    break;
+                                }else{
+                                    throw runtime_error("El limite lo esta sobrepasando");
+                                }
+                            }
+                        }
+                        if((particiones[j].TamanioParte+j+
+                        particiones[j].IniciaParte)<= DiscoAct.mbrTamanio){
+                            particiones[j].TamanioParte+=j;
+                            break;
+                        }else{
+                            throw runtime_error("El limite lo esta soprepasando");
+                        }
+                    }
+                }
+            }
+        }
+        DiscoAct.mbrParticion1 = particiones[0];
+        DiscoAct.mbrParticion2 = particiones[1];
+        DiscoAct.mbrParticion3 = particiones[2];
+        DiscoAct.mbrParticion4 = particiones[3];
+
+        rewind(archivo);
+        fwrite(&DiscoAct,sizeof(Structs::StructMBR),1,archivo);
+        Auxx.Respuesta("COMANDO FDISK","La particion ha crecido de manera exitosa");
+        fclose(archivo);
+    }
+    catch (exception &e){
+        Auxx.Alerta("COMANDO FDISK",e.what());
+        return;
+    }
 }
 
 vector <Structs::StructParticion> LogDiscos::JalaParticiones(Structs::MBRStruct discoB){

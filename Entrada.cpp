@@ -6,14 +6,15 @@
 #include <cstdlib>
 #include "Entrada.h"
 #include "Mount.h"
+#include "Reportes.h"
 
 LogDiscos DiscoLogica;
 Mount ComMount;
+Reportes Reporte;
 
 using namespace std;
 string tok;
 //Vector que esta dentro del metodo
-vector<string> tokens;
 //Vector que recibe el retorno del metodo
 vector<string> tokRet;
 //Variable para split de tokens que sirve para ir formando los parametros
@@ -150,7 +151,7 @@ bool  entrada::ComparaCadena(string var){
 }
 
 vector<string> entrada::splitTok(string tokensCad){
-
+    vector<string> tokens;
     if (tokensCad.empty())
     {
         return tokens;
@@ -206,7 +207,7 @@ vector<string> entrada::splitTok(string tokensCad){
             }else if (estado==4 && pivote == '\"')
             {
                 //Vaciamos el array de tokens
-                tokens.clear();
+
                 continue;
                 //Guardamos el final de los parametros
             }else if (estado ==4 && pivote == ' ' && ComparaCadena(token) == true){
@@ -257,7 +258,7 @@ void entrada::script(string direc){
     string nombreArc(direc);
     string escritura;
     string p;
-    vector <string> toks;
+
 
     ifstream archEn(nombreArc);
     //Error si no se llega a encontrar la direccion
@@ -266,7 +267,7 @@ void entrada::script(string direc){
         return;
     }
 
-    //Podemos escribir en el archivo
+    //Podemos leer en el archivo
     while(getline(archEn,auxLin)){
         vecL.push_back(auxLin);
     }
@@ -280,7 +281,7 @@ void entrada::script(string direc){
             continue;
         }
         escritura.erase(0,tokenSc.length()+1);
-        toks= splitTok(escritura);
+        vector <string> toks= splitTok(escritura);
         comandos(tokenSc,toks);
     }
     archEn.close();
@@ -308,7 +309,15 @@ void entrada::comandos(string tokenC, vector<string> tks)
     }else if(Equals(tokenC, "EXEC")) {
         cout << "*****EJECUTANDO COMANDO EXEC*****\n";
         comandoScript(tks);
-    }else if (Equals(tokenC.substr(0,1), "#")){
+    }else if(Equals(tokenC,"REP")){
+        Reporte.generaReporte(tks, ComMount);
+    }else if(Equals(tokenC,"PAUSE")){
+        cout<< "*****EJECUTANDO COMANDO PAUSE*****\n";
+        cout << "\n**********Programa en pausa**********\nPresione enter, para poder continuar:" << endl;
+        string comando;
+        getline(cin,comando);
+    }
+    else if (Equals(tokenC.substr(0,1), "#")){
         cout<<"*****EJECUTANDO COMANDO COMENTARIO*****\n";
         AlertaMensaje("COMENTARIO",tokenC);
     }

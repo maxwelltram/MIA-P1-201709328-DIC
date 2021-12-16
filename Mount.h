@@ -27,6 +27,7 @@ public:
         char path[150];
         ParticionMontada  MontParticiones[26];
     }DiscoMontado;
+    Structs::StructParticion BusquedaMontar(string ide, string *path);
     DiscoMontado ListaMontar[99];
     vector<char> Diccionario={'a','b','c','d','e','f','g','h','i','j','k'
     ,'l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
