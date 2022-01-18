@@ -8,3 +8,6 @@ en Linux.
 
 Dependencias: 
 * Tener un IDE que pueda compilar archivos de C/C++.
+* Puedes ver el manual, en este enlace de abajo. 
+
+[[MIA]Manual_Proyecto1.pdf](https://github.com/maxwelltram/MIA-P1-201709328-DIC/files/7892087/MIA.Manual_Proyecto1.pdf)
